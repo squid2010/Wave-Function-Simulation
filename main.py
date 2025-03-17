@@ -1,13 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import constants
-from scipy.ndimage import convolve
+import matplotlib.animation as animation
+from numba import njit
 
-def laplacian(array):
-    kernel = np.array([[0, 1, 0],
-                       [1, -4, 1],
-                       [0, 1, 0]])
-    return convolve(array, kernel, mode='nearest')
+@njit
+def laplacian_numba(array, dx2):
+    Nx, Ny = array.shape
+    lap = np.zeros_like(array)
+    for i in range(1, Nx-1):
+        for j in range(1, Ny-1):
+            lap[i, j] = (array[i+1, j] + array[i-1, j] + array[i, j+1] + array[i, j-1] - 4 * array[i, j]) / dx2
+    return lap
 
 def time_dependent_2D_schrodinger(psi, potential, x, y, dx, dy, mass=1.0):
     hbar = 1.0 # natural units
