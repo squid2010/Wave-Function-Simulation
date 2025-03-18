@@ -21,16 +21,37 @@ def time_dependent_2D_schrodinger(psi, potential, x, y, dx, dy, mass=1.0):
     dpsi_dt = rhs / (hbar * 1j)
     return dpsi_dt
 
-def wavefunction(x, y, t):
-    sigma = 2.0
-    A = 1.0 / (2 * np.pi * sigma**2)**0.5
-    psi1 = A * np.exp(-(x**2+y**2)/(2*sigma**2)) * np.exp(1j*(1.0*x + 1.0*y - t))
-    psi2 = A * np.exp(-((x-2)**2+(y+2)**2)/(2*sigma**2)) * np.exp(1j*(-1.0*x + 1.0*y - 2*t))
-    return psi1 + psi2
-  
-def potential(x, y):
-    return np.abs(-np.abs((x/5)**2+(y/5)**2)+10)
-    #return np.where(np.logical_and(np.abs(x) < 2, np.abs(y) < 2), 0, 1000)
+def wavefunction(x, y, t, sigma=1.0, k_x=1.0, k_y=1.0, omega=1.0, 
+                 n=2, spacing_factor=3.0):
+    # Calculate spacing between wave packet centers
+    spacing = spacing_factor * sigma
+
+    # Initialize the total wavefunction
+    psi_total = np.zeros_like(x, dtype=complex)
+
+    # Calculate offsets to center the grid
+    offset = (n - 1) / 2 * spacing
+
+    A = 1.0 / (n**2 * (2 * np.pi * sigma**2)**0.5)
+
+    # Superpose Gaussian wave packets
+    for i in range(n):
+        for j in range(n):
+            x0 = i * spacing - offset
+            y0 = j * spacing - offset
+            psi_total += A * np.exp(-(((x - x0)**2 + (y - y0)**2) / (2 * sigma**2))) \
+                                 * np.exp(1j*(k_x*x + k_y*y - omega*t))
+    return psi_total
+# Define the potential energy function
+def potential(x, y, U0=1.0, r0=10.0):
+    return (x/10)**3+(y/10)**3
+    
+    #r_squared = x**2 + y**2
+    #r_soft = np.sqrt(r_squared + r0**2)
+    #U = U0 / (r_soft**3)
+    #return 1e4*(U)
+    
+    
 
 
 # Define grid
